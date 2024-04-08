@@ -38,6 +38,8 @@ print(paste0(alleles_A/alleles_A_in_I *100, "% of alleles in ASINTMAL run (exclu
 print(paste0(alleles_A/alleles_A_in_B *100, "% of alleles in ASINTMAL run (excluding 3D7 controls) from pool 2 are also in BOH run"))
 print(paste0(alleles_A/alleles_A_in_H *100, "% of alleles in ASINTMAL run (excluding 3D7 controls) from pool 2 are also in HFS1 run"))
 print(paste0(round(alleles_A_in_I/alleles_I *100, 2), "% of alleles in ICAE from pool 2 are also in ASINTMAL run (excluding 3D7 controls)"))
+print(paste0(round(alleles_A_in_B/alleles_B *100, 2), "% of alleles in BOH from pool 2 are also in ASINTMAL run (excluding 3D7 controls)"))
+print(paste0(round(alleles_A_in_H/alleles_H *100, 2), "% of alleles in HFS1 from pool 2 are also in ASINTMAL run (excluding 3D7 controls)"))
 
 #how many/ which amplicons of pool 2 are shared between runs?
 unique_amps_ICAB <- setdiff(unique(I_p2$locus), unique(A_p2_no3D7$locus))
