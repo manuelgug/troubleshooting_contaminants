@@ -80,7 +80,7 @@ pc_scores <- as.data.frame(cbind(pc_scores, sampleID = reformatted_df_A$sampleID
 ggplot(pc_scores, aes(x = PC1, y = PC2, color = outlier, label = sampleID)) +
   geom_point() +
   geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +  # Add SampleID label annotations to outliers
-  scale_color_manual(values = c("black", "red")) +  # Black for non-outliers, red for outliers
+  scale_color_manual(values = c("black", "red")) +  
   labs(title = "PCA Plot",
        x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  # Include percentage variance explained in x-axis label
        y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) +  # Include percentage variance explained in y-axis label
@@ -119,11 +119,11 @@ pc_scores <- as.data.frame(cbind(pc_scores, sampleID = reformatted_df_I$sampleID
 # Plot PCA results with outliers labeled
 ggplot(pc_scores, aes(x = PC1, y = PC2, color = outlier, label = sampleID)) +
   geom_point() +
-  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +    # Add SampleID label annotations to outliers
-  scale_color_manual(values = c("black", "red")) +  # Black for non-outliers, red for outliers
+  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +  
+  scale_color_manual(values = c("black", "red")) +  
   labs(title = "PCA Plot",
-       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  # Include percentage variance explained in x-axis label
-       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) +  # Include percentage variance explained in y-axis label
+       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  
+       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) + 
   theme_minimal()
 
 
@@ -159,11 +159,11 @@ pc_scores <- as.data.frame(cbind(pc_scores, sampleID = reformatted_df_B$sampleID
 # Plot PCA results with outliers labeled
 ggplot(pc_scores, aes(x = PC1, y = PC2, color = outlier, label = sampleID)) +
   geom_point() +
-  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +    # Add SampleID label annotations to outliers
-  scale_color_manual(values = c("black", "red")) +  # Black for non-outliers, red for outliers
+  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +  
+  scale_color_manual(values = c("black", "red")) +  
   labs(title = "PCA Plot",
-       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  # Include percentage variance explained in x-axis label
-       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) +  # Include percentage variance explained in y-axis label
+       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  
+       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) + 
   theme_minimal()
 
 
@@ -199,11 +199,11 @@ pc_scores <- as.data.frame(cbind(pc_scores, sampleID = reformatted_df_H$sampleID
 # Plot PCA results with outliers labeled
 ggplot(pc_scores, aes(x = PC1, y = PC2, color = outlier, label = sampleID)) +
   geom_point() +
-  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +    # Add SampleID label annotations to outliers
-  scale_color_manual(values = c("black", "red")) +  # Black for non-outliers, red for outliers
+  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) + 
+  scale_color_manual(values = c("black", "red")) +  
   labs(title = "PCA Plot",
-       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  # Include percentage variance explained in x-axis label
-       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) +  # Include percentage variance explained in y-axis label
+       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"), 
+       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) +
   theme_minimal()
 
 
@@ -249,11 +249,11 @@ pc_scores$runs <- runs
 # Plot PCA results with outliers labeled
 ggplot(pc_scores, aes(x = PC1, y = PC2, color = runs, label = sampleID)) +
   geom_point(alpha = 0.7) +
-  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +  # Add SampleID label annotations to outliers
-  scale_color_manual(values = c("red", "purple", "limegreen", "orange")) +  # Black for non-outliers, red for outliers
-  labs(title = "PCA Plot",
-       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  # Include percentage variance explained in x-axis label
-       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) +  # Include percentage variance explained in y-axis label
+  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) + 
+  scale_color_manual(values = c("red", "purple", "limegreen", "orange")) +
+  labs(title = "PCA Plot of Amplicon Proportions (Pool 2 only)",
+       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"), 
+       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) +
   theme_minimal()
 
 
