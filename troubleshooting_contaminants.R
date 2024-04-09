@@ -30,6 +30,8 @@ T_p2 <- TES[grep("-2$", TES$locus), ]
 # I_p2 <- ICAE
 # B_p2 <- BOH
 # H_p2 <- HFS1
+# S_p2 <- SMC2_1
+# T_p2 <- TES
 
 #remove 3d7 controls from ASINTMAL run because they DO have pool 2
 A_p2 <- A_p2[!grepl("3D7", A_p2$sampleID, ignore.case = TRUE), ]
@@ -49,7 +51,7 @@ H_p2 <- H_p2[A_p2$pseudo_cigar != ".",]
 S_p2 <- S_p2[S_p2$pseudo_cigar != ".",]
 T_p2 <- T_p2[T_p2$pseudo_cigar != ".",]
 
-#how many alleles of pool 2 from ASINTMAL are in ICAE?
+#how many alleles of pool 2 from ASINTMAL are in ICAE (and other runs)?
 alleles_A <- length(unique(A_p2$locus_allele))
 alleles_I <- length(unique(I_p2$locus_allele))
 alleles_B <- length(unique(B_p2$locus_allele))
@@ -276,6 +278,50 @@ ggplot(pc_scores, aes(x = Axis.1, y = Axis.2, color = runs, label = sampleID)) +
        x = paste0("PCo 1: ", variance_explained_axis1, "%\n"),
        y = paste0("PCo 2: ", variance_explained_axis2, "%")) +
   theme_minimal()
+
+
+
+### PcoA presence/absence
+
+proportions_joined_PA <- ifelse(proportions_joined == 0 , 0, 1)
+
+# Compute Bray-Curtis dissimilarity matrix
+bray_curtis_dist <- vegdist(proportions_joined_PA, method = "bray")
+
+# Perform PCoA
+pcoa_result <- pcoa(bray_curtis_dist)
+
+# Extract PCoA scores
+pc_scores <- as.data.frame(pcoa_result$vectors)
+
+# Calculate outlier samples
+mah_dist <- mahalanobis(pc_scores, colMeans(pc_scores), cov(pc_scores))^2
+alpha <- 0.05
+n_components <- min(dim(pc_scores)[2], dim(pc_scores)[1])
+chi_sq_crit <- qchisq(1 - alpha, df = n_components)
+outliers <- mah_dist > chi_sq_crit
+
+# Add outliers to PC scores dataframe
+pc_scores$outlier <- outliers
+pc_scores <- cbind(pc_scores, sampleID = sample_names)
+
+# # Plot PCoA
+variance_explained <- round(pcoa_result$values / sum(pcoa_result$values) * 100, 2)
+variance_explained_axis1 <- variance_explained$Eigenvalues[1]
+variance_explained_axis2 <- variance_explained$Eigenvalues[2]
+
+# Plot PCoA results with outliers labeled
+ggplot(pc_scores, aes(x = Axis.1, y = Axis.2, color = runs, label = sampleID)) +
+  geom_point(alpha = 0.5, size =2) +
+  #geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +
+  scale_color_manual(values = c("red", "purple", "limegreen", "orange", "blue", "pink")) +
+  labs(title = "PCoA Plot of non-ref PRESENCE/ABSENCE of Alleles (Pool 2 only)",
+       x = paste0("PCo 1: ", variance_explained_axis1, "%\n"),
+       y = paste0("PCo 2: ", variance_explained_axis2, "%")) +
+  theme_minimal()
+
+
+
 
 
 
