@@ -23,6 +23,14 @@ unique(H_p2$locus)
 
 #remove 3d7 controls from ASINTMAL run because they DO have pool 2
 A_p2_no3D7 <- A_p2[!grepl("3D7", A_p2$sampleID, ignore.case = TRUE), ]
+A_p2_no3D7 <- A_p2[!grepl("dd2", A_p2$sampleID, ignore.case = TRUE), ]
+I_p2 <- I_p2[!grepl("3D7", I_p2$sampleID, ignore.case = TRUE), ]
+I_p2 <- I_p2[!grepl("dd2", I_p2$sampleID, ignore.case = TRUE), ]
+B_p2 <- B_p2[!grepl("3D7", B_p2$sampleID, ignore.case = TRUE), ]
+B_p2 <- B_p2[!grepl("dd2", B_p2$sampleID, ignore.case = TRUE), ]
+H_p2 <- H_p2[!grepl("3D7", H_p2$sampleID, ignore.case = TRUE), ]
+H_p2 <- H_p2[!grepl("dd2", H_p2$sampleID, ignore.case = TRUE), ]
+
 
 #how many alleles of pool 2 from ASINTMAL are in ICAE?
 alleles_A <- length(unique(A_p2_no3D7$pseudo_cigar))
@@ -62,33 +70,6 @@ reformatted_df_A <- A_p2_no3D7 %>%
 row_sums <- rowSums(reformatted_df_A[,-1], na.rm = TRUE)
 proportions_df_A <- reformatted_df_A[,-1] / row_sums
 
-# Perform PCA
-pca_result <- prcomp(proportions_df_A)
-pc_scores <- as.data.frame(pca_result$x)
-pc_scores$SampleID <- rownames(reformatted_df_A)
-
-# Calculate outlier samples
-mah_dist <- mahalanobis(pc_scores[, c("PC1", "PC2")], colMeans(pc_scores[, c("PC1", "PC2")]), cov(pc_scores[, c("PC1", "PC2")]))^2
-alpha <- 0.05
-n_components <- min(dim(pc_scores)[2], dim(pc_scores)[1])
-chi_sq_crit <- qchisq(1 - alpha, df = n_components)
-outliers <- mah_dist > chi_sq_crit
-
-# Add outliers to PC scores dataframe
-pc_scores$outlier <- outliers
-pc_scores <- as.data.frame(cbind(pc_scores, sampleID = reformatted_df_A$sampleID))
-
-# Plot PCA results with outliers labeled
-ggplot(pc_scores, aes(x = PC1, y = PC2, color = outlier, label = sampleID)) +
-  geom_point() +
-  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +  # Add SampleID label annotations to outliers
-  scale_color_manual(values = c("black", "red")) +  
-  labs(title = "PCA Plot",
-       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  # Include percentage variance explained in x-axis label
-       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) +  # Include percentage variance explained in y-axis label
-  theme_minimal()
-
-
 #### PCA ICAE pool2
 reformatted_df_I <- I_p2 %>%
   group_by(sampleID, locus) %>%
@@ -101,32 +82,6 @@ reformatted_df_I <- reformatted_df_I[, !names(reformatted_df_I) %in% unique_amps
 # Calculate proportions
 row_sums <- rowSums(reformatted_df_I[,-1], na.rm = TRUE)
 proportions_df_I <- reformatted_df_I[,-1] / row_sums
-
-# Perform PCA
-pca_result <- prcomp(proportions_df_I)
-pc_scores <- as.data.frame(pca_result$x)
-pc_scores$SampleID <- rownames(reformatted_df_I)
-
-# Calculate outlier samples
-mah_dist <- mahalanobis(pc_scores[, c("PC1", "PC2")], colMeans(pc_scores[, c("PC1", "PC2")]), cov(pc_scores[, c("PC1", "PC2")]))^2
-alpha <- 0.05
-n_components <- min(dim(pc_scores)[2], dim(pc_scores)[1])
-chi_sq_crit <- qchisq(1 - alpha, df = n_components)
-outliers <- mah_dist > chi_sq_crit
-
-# Add outliers to PC scores dataframe
-pc_scores$outlier <- outliers
-pc_scores <- as.data.frame(cbind(pc_scores, sampleID = reformatted_df_I$sampleID))
-
-# Plot PCA results with outliers labeled
-ggplot(pc_scores, aes(x = PC1, y = PC2, color = outlier, label = sampleID)) +
-  geom_point() +
-  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +  
-  scale_color_manual(values = c("black", "red")) +  
-  labs(title = "PCA Plot",
-       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  
-       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) + 
-  theme_minimal()
 
 
 #### PCA BOH pool2
@@ -142,32 +97,6 @@ reformatted_df_B <- reformatted_df_B[, !names(reformatted_df_B) %in% unique_amps
 row_sums <- rowSums(reformatted_df_B[,-1], na.rm = TRUE)
 proportions_df_B <- reformatted_df_B[,-1] / row_sums
 
-# Perform PCA
-pca_result <- prcomp(proportions_df_B)
-pc_scores <- as.data.frame(pca_result$x)
-pc_scores$SampleID <- rownames(reformatted_df_B)
-
-# Calculate outlier samples
-mah_dist <- mahalanobis(pc_scores[, c("PC1", "PC2")], colMeans(pc_scores[, c("PC1", "PC2")]), cov(pc_scores[, c("PC1", "PC2")]))^2
-alpha <- 0.05
-n_components <- min(dim(pc_scores)[2], dim(pc_scores)[1])
-chi_sq_crit <- qchisq(1 - alpha, df = n_components)
-outliers <- mah_dist > chi_sq_crit
-
-# Add outliers to PC scores dataframe
-pc_scores$outlier <- outliers
-pc_scores <- as.data.frame(cbind(pc_scores, sampleID = reformatted_df_B$sampleID))
-
-# Plot PCA results with outliers labeled
-ggplot(pc_scores, aes(x = PC1, y = PC2, color = outlier, label = sampleID)) +
-  geom_point() +
-  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) +  
-  scale_color_manual(values = c("black", "red")) +  
-  labs(title = "PCA Plot",
-       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"),  
-       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) + 
-  theme_minimal()
-
 
 #### PCA HFS1 pool2
 reformatted_df_H <- H_p2 %>%
@@ -181,32 +110,6 @@ reformatted_df_H <- reformatted_df_H[, !names(reformatted_df_H) %in% unique_amps
 # Calculate proportions
 row_sums <- rowSums(reformatted_df_H[,-1], na.rm = TRUE)
 proportions_df_H <- reformatted_df_H[,-1] / row_sums
-
-# Perform PCA
-pca_result <- prcomp(proportions_df_H)
-pc_scores <- as.data.frame(pca_result$x)
-pc_scores$SampleID <- rownames(reformatted_df_H)
-
-# Calculate outlier samples
-mah_dist <- mahalanobis(pc_scores[, c("PC1", "PC2")], colMeans(pc_scores[, c("PC1", "PC2")]), cov(pc_scores[, c("PC1", "PC2")]))^2
-alpha <- 0.05
-n_components <- min(dim(pc_scores)[2], dim(pc_scores)[1])
-chi_sq_crit <- qchisq(1 - alpha, df = n_components)
-outliers <- mah_dist > chi_sq_crit
-
-# Add outliers to PC scores dataframe
-pc_scores$outlier <- outliers
-pc_scores <- as.data.frame(cbind(pc_scores, sampleID = reformatted_df_H$sampleID))
-
-# Plot PCA results with outliers labeled
-ggplot(pc_scores, aes(x = PC1, y = PC2, color = outlier, label = sampleID)) +
-  geom_point() +
-  geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) + 
-  scale_color_manual(values = c("black", "red")) +  
-  labs(title = "PCA Plot",
-       x = paste0("Principal Component 1 (", round(100 * pca_result$sdev[1]^2 / sum(pca_result$sdev^2), 2), "%)"), 
-       y = paste0("Principal Component 2 (", round(100 * pca_result$sdev[2]^2 / sum(pca_result$sdev^2), 2), "%)")) +
-  theme_minimal()
 
 
 
@@ -250,7 +153,7 @@ pc_scores$runs <- runs
 
 # Plot PCA results with outliers labeled
 ggplot(pc_scores, aes(x = PC1, y = PC2, color = runs, label = sampleID)) +
-  geom_point(alpha = 0.7) +
+  geom_point(alpha = 0.5) +
   geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) + 
   scale_color_manual(values = c("red", "purple", "limegreen", "orange")) +
   labs(title = "PCA Plot of Amplicon Proportions (Pool 2 only)",
@@ -259,4 +162,42 @@ ggplot(pc_scores, aes(x = PC1, y = PC2, color = runs, label = sampleID)) +
   theme_minimal()
 
 
+
+library(vegan)
+library(ape)
+
+# Compute Bray-Curtis dissimilarity matrix
+bray_curtis_dist <- vegdist(proportions_joined, method = "bray")
+
+# Perform PCoA
+pcoa_result <- pcoa(bray_curtis_dist)
+
+# Extract PCoA scores
+pc_scores <- as.data.frame(pcoa_result$vectors)
+
+# Calculate outlier samples
+mah_dist <- mahalanobis(pc_scores, colMeans(pc_scores), cov(pc_scores))^2
+alpha <- 0.05
+n_components <- min(dim(pc_scores)[2], dim(pc_scores)[1])
+chi_sq_crit <- qchisq(1 - alpha, df = n_components)
+outliers <- mah_dist > chi_sq_crit
+
+# Add outliers to PC scores dataframe
+pc_scores$outlier <- outliers
+pc_scores <- cbind(pc_scores, sampleID = sample_names)
+
+# # Plot PCoA
+variance_explained <- round(pcoa_result$values / sum(pcoa_result$values) * 100, 2)
+variance_explained_axis1 <- variance_explained$Eigenvalues[1]
+variance_explained_axis2 <- variance_explained$Eigenvalues[2]
+
+# Plot PCoA results with outliers labeled
+ggplot(pc_scores, aes(x = Axis.1, y = Axis.2, color = runs, label = sampleID)) +
+  geom_point(alpha = 0.5) +
+  #geom_text_repel(data = subset(pc_scores, outlier), aes(label = sampleID), size = 3, color = "grey60", segment.color = "grey60", segment.size = 0.5) + 
+  scale_color_manual(values = c("red", "purple", "limegreen", "orange")) +
+  labs(title = "PCoA Plot of Amplicon Proportions (Pool 2 only)",
+       x = paste0("PCo 1: ", variance_explained_axis1, "%\n"),
+       y = paste0("PCo 2: ", variance_explained_axis2, "%")) +
+  theme_minimal()
 
