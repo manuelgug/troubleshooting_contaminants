@@ -338,9 +338,13 @@ selected_df_perc <- selected_df_perc[selected_df_perc$sampleID !="Undetermined_S
 write.csv(selected_df_perc, paste(problem_run, "_percentages_contaminants.csv"), row.names = F)
 
 
+## TAILPLOT
 
-#keep 200 more likely samples for easier visualization
+#keep 100 more likely samples for easier visualization
 selected_df_perc_subset <- selected_df_perc[1:100,]
+
+#calcualte q99 for mean percentages:
+q99 <- quantile(selected_df_perc$mean_perc_shared_alleles, 0.99)
 
 set.seed(123)
 
@@ -352,14 +356,37 @@ n_runs <- length(unique_runs)
 color_palette <- rainbow(n_runs)
 
 shared_neg <- ggplot(selected_df_perc_subset, aes(x = 1:length(sampleID), y = mean_perc_shared_alleles, color = run)) +
-  geom_point(size =3, alpha = 0.7) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_hline(yintercept = q99, linetype = "dashed", color = "red") +  # Add horizontal line
   scale_color_manual(values = color_palette) +
   labs(title = "",
        x = "Sample ID",
        y = "Mean Percentage of Shared Alleles",
        color = "Run") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
   guides(color = guide_legend(ncol = 1))
 
 ggsave(paste0(problem_run, "_shared_alleles_w_neg_controls.png"), shared_neg, width = 14, height = 8, bg = "white")
+
+
+## BARPLOT
+
+# Extract runs with mean_perc_shared_alleles > q99
+selected_df_perc_q99 <- selected_df_perc[selected_df_perc$mean_perc_shared_alleles > q99,]
+
+# Create a bar plot of the frequency of each unique run
+run_freq <- selected_df_perc_q99 %>%
+  filter(run %in% selected_runs$run) %>%
+  group_by(run) %>%
+  summarise(count = n())
+
+barplot <- ggplot(run_freq, aes(x = reorder(run, -count), y = count,)) +
+  geom_bar(stat = "identity", fill = "skyblue") +
+  labs(title = "# of samples with mean_perc_shared_alleles > q99",
+       x = "Run",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+
+ggsave(paste0(problem_run, "_contam_runs.png"), barplot, width = 8, height = 6, bg = "white")
