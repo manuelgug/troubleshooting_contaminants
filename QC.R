@@ -5,6 +5,8 @@ library(ggplot2)
 library(ggrepel)
 library(gridExtra)
 library(stringr)
+library(vegan)
+library(ape)
 
 
 #INPUT: raw unfiltered allele_data.txt from mad4hatter
@@ -14,7 +16,7 @@ problem_run <- basename("runs/ASINT_NextSeq01_RESULTS/") #USER INPUT (folder nam
 problem_run <- sub("_RESULTS.*", "", problem_run)
 
 
-#### 1) Contextualize the run in terms of previous ones
+#### 1) Contextualize the run with previous ones
 
 # import allele_data.txt files
 directories <- list.dirs("runs", full.names = TRUE, recursive = FALSE)
@@ -86,9 +88,61 @@ allele_data_df <- pivot_wider(allele_data_df, names_from = locus_allele, values_
 # Replace NA with 0 in allele_data_df
 allele_data_df[is.na(allele_data_df)] <- 0
 
-allele_data_df_pres_abs <- allele_data_df
-allele_data_df_pres_abs[allele_data_df_pres_abs > 1] <- 1
 
+
+
+## PcoA of allele pres/abs of all samples from all runs
+allele_data_df_pres_abs <- allele_data_df
+allele_data_df_metadata <- allele_data_df_pres_abs[,1:2] #separate metadata from values
+allele_data_df_pres_abs <- allele_data_df_pres_abs[,-1:-2]
+allele_data_df_pres_abs[allele_data_df_pres_abs > 1] <- 1 #convert data to presence/absence
+
+# Compute Bray-Curtis dissimilarity matrix
+#bray_curtis_dist <- vegdist(allele_data_df_pres_abs, method = "bray") #SLOW AF
+bray_curtis_dist <- designdist(allele_data_df_pres_abs, method = "(A+B-2*J)/(A+B)", terms = "binary") # braycurtis distance formula (faster than vegdist(allele_data_df_pres_abs, method = "bray") #SLOW AF)
+
+# Perform PCoA
+pcoa_result <- pcoa(bray_curtis_dist)
+
+# Extract PCoA scores
+pc_scores <- as.data.frame(pcoa_result$vectors)
+pc_scores <- cbind(pc_scores, allele_data_df_metadata)
+
+# # Plot PCoA
+variance_explained <- round(pcoa_result$values / sum(pcoa_result$values) * 100, 2)
+variance_explained_axis1 <- variance_explained$Eigenvalues[1]
+variance_explained_axis2 <- variance_explained$Eigenvalues[2]
+
+set.seed(123)
+
+# Select the unique runs
+unique_runs <- unique(pc_scores$run)
+n_runs <- length(unique_runs)
+
+# Number of colors to generate
+n_colors <- 50
+
+# Generate random colors in hexadecimal format
+random_colors <- sample(rgb(runif(n_colors), runif(n_colors), runif(n_colors)), n_colors)
+
+# Repeat the sampled colors to match the number of runs
+color_palette <- rep(random_colors, length.out = n_runs)
+
+# Plot with the custom color palette
+pc_scores$problem_run <- ifelse(pc_scores$run == problem_run, "problem_run", "other")
+
+# Plot with different shapes for problem_run and others
+pcoa_runs<- ggplot(pc_scores, aes(x = Axis.1, y = Axis.2, color = run, label = sampleID, shape = problem_run)) +
+  geom_point(alpha = 0.5, size = 4) +
+  scale_color_manual(values = color_palette) +
+  scale_shape_manual(values = c(problem_run = 15, other = 20)) +
+  labs(title = "PCoA Plot of PRESENCE/ABSENCE of Alleles",
+       x = paste0("PCo 1: ", variance_explained_axis1, "%\n"),
+       y = paste0("PCo 2: ", variance_explained_axis2, "%")) +
+  theme_minimal() +
+  guides(color = guide_legend(ncol = 1))
+
+ggsave(paste0(problem_run, "_runs_PCoA.png"), pcoa_runs, width = 18, height = 10, bg ="white")
 
 
 #### 2) Find outlier samples within a run
@@ -109,7 +163,7 @@ problem_run_df_pres_abs <- problem_run_df_counts
 problem_run_df_pres_abs[problem_run_df_pres_abs > 1] <- 1
 
 
-### pca ###
+### pca to spot outlier samples ###
 perform_pca <- function(problem_run_df_proportions, problem_run_df_meta, alpha = 0.01) {
   # Remove columns with constant or zero variance
   constant_cols <- sapply(problem_run_df_proportions, function(x) length(unique(x)) == 1)
