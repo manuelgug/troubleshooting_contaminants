@@ -340,31 +340,21 @@ write.csv(selected_df_perc, paste(problem_run, "_percentages_contaminants.csv"),
 
 
 #keep 200 more likely samples for easier visualization
-selected_df_perc_subset <- selected_df_perc[1:500,]
+selected_df_perc_subset <- selected_df_perc[1:100,]
 
 set.seed(123)
 
 # Select the unique runs
-unique_runs <- unique(pc_scores$run)
+unique_runs <- unique(selected_df_perc_subset$run)
 n_runs <- length(unique_runs)
 
-# Number of colors to generate
-n_colors <- 50
-
 # Generate random colors in hexadecimal format
-random_colors <- rainbow(n_runs)
-
-# Repeat the sampled colors to match the number of runs
-# Generate a palette of colors
 color_palette <- rainbow(n_runs)
 
-# Repeat the palette to match the number of unique runs
-color_palette <- rep(color_palette, length.out = n_runs)
-
-ggplot(selected_df_perc, aes(x = 1:length(sampleID), y = mean_perc_shared_alleles, color = run)) +
+shared_neg <- ggplot(selected_df_perc_subset, aes(x = 1:length(sampleID), y = mean_perc_shared_alleles, color = run)) +
   geom_point(size =3, alpha = 0.7) +
   scale_color_manual(values = color_palette) +
-  labs(title = "Mean Percentage of Shared Alleles by Sample ID",
+  labs(title = "",
        x = "Sample ID",
        y = "Mean Percentage of Shared Alleles",
        color = "Run") +
@@ -372,3 +362,4 @@ ggplot(selected_df_perc, aes(x = 1:length(sampleID), y = mean_perc_shared_allele
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
   guides(color = guide_legend(ncol = 1))
 
+ggsave(paste0(problem_run, "_shared_alleles_w_neg_controls.png"), shared_neg, width = 14, height = 8, bg = "white")
