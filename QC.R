@@ -86,7 +86,8 @@ if (pool == "2"){
 allele_data_df_wide <- pivot_wider(allele_data_df, names_from = locus_allele, values_from = reads)
 
 # Replace NA with 0 in allele_data_df_wide
-allele_data_df_wide[is.na(allele_data_df_wide)] <- 0
+# allele_data_df_wide[is.na(allele_data_df_wide)] <- 0
+allele_data_df_wide <- replace(allele_data_df_wide, is.na(allele_data_df_wide), 0)
 
 
 
@@ -95,7 +96,8 @@ allele_data_df_wide[is.na(allele_data_df_wide)] <- 0
 allele_data_df_pres_abs <- allele_data_df_wide
 allele_data_df_metadata <- allele_data_df_pres_abs[,1:2] #separate metadata from values
 allele_data_df_pres_abs <- allele_data_df_pres_abs[,-1:-2]
-allele_data_df_pres_abs[allele_data_df_pres_abs > 1] <- 1 #convert data to presence/absence
+# allele_data_df_pres_abs[allele_data_df_pres_abs > 1] <- 1 #convert data to presence/absence
+allele_data_df_pres_abs <- replace(allele_data_df_pres_abs, allele_data_df_pres_abs > 1, 1) #convert data to presence/absence
 
 # Compute Bray-Curtis dissimilarity matrix
 #bray_curtis_dist <- vegdist(allele_data_df_pres_abs, method = "bray") #SLOW AF
@@ -148,7 +150,7 @@ ggsave(paste0(problem_run, "_runs_PCoA.png"), pcoa_runs, width = 18, height = 10
 #### 2) Find outlier samples within a run
 
 #subset problem run
-problem_run_df <-  allele_data_df[allele_data_df$run == problem_run,]
+problem_run_df <-  allele_data_df_wide[allele_data_df_wide$run == problem_run,]
 
 #split counts and metadata, calculate allele proportions
 problem_run_df_meta <- problem_run_df[,1:2]
@@ -377,7 +379,6 @@ selected_df_perc_q99 <- selected_df_perc[selected_df_perc$mean_perc_shared_allel
 
 # Create a bar plot of the frequency of each unique run
 run_freq <- selected_df_perc_q99 %>%
-  filter(run %in% selected_runs$run) %>%
   group_by(run) %>%
   summarise(count = n())
 
